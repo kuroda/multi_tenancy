@@ -19,7 +19,7 @@ module MigrationHelpers
     })
 
     execute_query(%Q{
-      ALTER TABLE users ENABLE ROW LEVEL SECURITY
+      ALTER TABLE #{table_name} ENABLE ROW LEVEL SECURITY
     })
   end
 
