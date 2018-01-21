@@ -20,6 +20,7 @@ config = configurations["migrator"]
 
 command = %Q{
   PGPASSWORD=#{config['password']} psql -U #{config['username']} --quiet
+  --host=#{config['host']} --port=#{config['port']}
   #{config['database']} -c "#{statements}"
 }.gsub(/\s+/, ' ').strip
 
