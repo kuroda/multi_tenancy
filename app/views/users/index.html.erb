@@ -1,7 +1,19 @@
 <h1>Users#index</h1>
 
+<p>Tenant: <%= current_tenant.name %></p>
+
 <ol>
 <% @users.each do |user| %>
-  <li><%= user.name %></li>
+  <li>
+    <%= user.name %>
+    <% user.articles.each do |article| %>
+    <ul>
+      <li><%= article.title %></li>
+    </ul>
+    <% end %>
+  </li>
 <% end %>
 </ol>
+
+<p>Article Count: <%= current_tenant.articles.count %></p>
+<p>All Article Count: <%= Article.count %></p>

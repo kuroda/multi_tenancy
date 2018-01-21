@@ -7,7 +7,7 @@ default: &default
   host: localhost
   port: 5432
 
-dev_migrator:
+migrator:
   <<: *default
   database: mt_development
 

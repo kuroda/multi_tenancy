@@ -2,6 +2,10 @@
   t = Tenant.create!(name: name)
 
   3.times do |n|
-    User.create!(tenant: t, name: "#{name}-#{n}")
+    u = User.create!(tenant: t, name: "#{name}-#{n}")
+
+    2.times do |m|
+      Article.create!(user: u, title: "#{name} #{n}-#{m}", body: "")
+    end
   end
 end

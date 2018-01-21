@@ -1,3 +1,4 @@
 class Tenant < ApplicationRecord
-  has_many :tenant
+  has_many :users
+  has_many :articles
 end

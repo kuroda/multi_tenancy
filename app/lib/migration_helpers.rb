@@ -9,4 +9,23 @@ module MigrationHelpers
   rescue ArgumentError
     false
   end
+
+  def create_policy_on(table_name)
+    execute_query(%Q{
+      CREATE POLICY tenant_policy ON #{table_name}
+        FOR ALL
+        TO mt
+        USING (#{table_name}.tenant_id::TEXT = current_setting('session.tenant_id'))
+    })
+
+    execute_query(%Q{
+      ALTER TABLE users ENABLE ROW LEVEL SECURITY
+    })
+  end
+
+  def drop_policy_on(table_name)
+    execute_query(%Q{
+      DROP POLICY tenant_policy ON #{table_name};
+    })
+  end
 end
