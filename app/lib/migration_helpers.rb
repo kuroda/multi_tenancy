@@ -3,19 +3,24 @@ module MigrationHelpers
     execute(query.gsub(/\s+/, ' ').strip)
   end
 
-  def valid_text_to_date(text)
-    return false unless text =~ /\A\d{1,4}\-\d{1,2}\-\d{1,2}\Z/
-    Date.parse(text)
-  rescue ArgumentError
-    false
-  end
-
   def create_policy_on(table_name)
+    username = ENV["DB_USERNAME"] || raise
+
+    execute_query(%Q{
+      CREATE POLICY admin_policy ON #{table_name}
+        FOR ALL
+        TO #{username}
+        USING (current_setting('session.access_level') = 'admin')
+    })
+
     execute_query(%Q{
       CREATE POLICY tenant_policy ON #{table_name}
         FOR ALL
-        TO mt
-        USING (#{table_name}.tenant_id::TEXT = current_setting('session.tenant_id'))
+        TO #{username}
+        USING (
+          current_setting('session.access_level') = 'tenant' AND
+          current_setting('session.tenant_id') = #{table_name}.tenant_id::TEXT
+        )
     })
 
     execute_query(%Q{
@@ -25,6 +30,7 @@ module MigrationHelpers
 
   def drop_policy_on(table_name)
     execute_query(%Q{
+      DROP POLICY admin_policy ON #{table_name};
       DROP POLICY tenant_policy ON #{table_name};
     })
   end
