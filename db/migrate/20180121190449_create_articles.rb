@@ -7,6 +7,7 @@ class CreateArticles < ActiveRecord::Migration[5.1]
       t.references :user, null: false
       t.string :title, null: false
       t.text :body
+      t.integer :pages, null: false, default: 0
 
       t.timestamps
     end

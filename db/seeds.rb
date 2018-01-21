@@ -5,7 +5,7 @@
     u = User.create!(tenant: t, name: "#{name}-#{n}")
 
     2.times do |m|
-      Article.create!(user: u, title: "#{name} #{n}-#{m}", body: "")
+      Article.create!(user: u, title: "#{name} #{n}-#{m}", body: "", pages: 10)
     end
   end
 end

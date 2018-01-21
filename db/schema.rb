@@ -20,6 +20,7 @@ ActiveRecord::Schema.define(version: 20180121190449) do
     t.bigint "user_id", null: false
     t.string "title", null: false
     t.text "body"
+    t.integer "pages", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["tenant_id"], name: "index_articles_on_tenant_id"

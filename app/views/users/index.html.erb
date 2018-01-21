@@ -17,3 +17,5 @@
 
 <p>Article Count: <%= current_tenant.articles.count %></p>
 <p>All Article Count: <%= Article.count %></p>
+<p>Article Page Count: <%= current_tenant.articles.sum(:pages) %></p>
+<p>All Article Page Count: <%= Article.sum(:pages) %></p>
