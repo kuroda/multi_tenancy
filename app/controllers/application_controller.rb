@@ -5,17 +5,15 @@ class ApplicationController < ActionController::Base
   before_action :set_tenant_id
 
   private def set_access_level
-    statement = "SET session.access_level = 'tenant'"
-    ActiveRecord::Base.connection.execute(statement)
+    ApplicationRecord.access_level = "tenant"
   end
 
   private def set_tenant_id
-    statement = "SET session.tenant_id = '#{current_tenant&.id}'"
-    ActiveRecord::Base.connection.execute(statement)
+    ApplicationRecord.tenant = current_tenant
   end
 
   private def current_tenant
-    @current_tenant ||= Tenant.all.sample
+    @current_tenant ||= Tenant.order(:id).first
   end
   helper_method :current_tenant
 end

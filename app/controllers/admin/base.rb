@@ -5,12 +5,10 @@ class Admin::Base < ActionController::Base
   before_action :set_tenant_id
 
   private def set_access_level
-    statement = "SET session.access_level = 'admin'"
-    ActiveRecord::Base.connection.execute(statement)
+    ApplicationRecord.access_level = "admin"
   end
 
   private def set_tenant_id
-    statement = "SET session.tenant_id = ''"
-    ActiveRecord::Base.connection.execute(statement)
+    ApplicationRecord.tenant = nil
   end
 end
