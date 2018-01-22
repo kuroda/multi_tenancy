@@ -13,7 +13,12 @@ ApplicationRecord.tenant = tenant2
 
 user2 = tenant2.users.first
 article = user2.articles.first
-article.update_column(:user_id, user1.id)
+
+begin
+  article.update_column(:user_id, user1.id)
+rescue ActiveRecord::StatementInvalid => e
+  puts e.to_s
+end
 
 puts user2.articles.count
 

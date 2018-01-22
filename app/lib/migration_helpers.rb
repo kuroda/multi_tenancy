@@ -1,27 +1,55 @@
 module MigrationHelpers
+  using StringExtension
+
   def execute_query(query)
-    execute(query.gsub(/\s+/, ' ').strip)
+    execute(query.squash)
   end
 
-  def create_policy_on(table_name)
+  def create_policy_on(table_name, references = [])
     username = ENV["DB_USERNAME"] || raise("DB_USERNAME is not set.")
 
-    execute_query(%Q{
+    check_expressions = references.map do |ref|
+      %Q{
+        (SELECT EXISTS (
+          SELECT true FROM #{ref[:table_name]}
+          WHERE #{ref[:table_name]}.id = #{table_name}.#{ref[:foreign_key]}
+          AND #{ref[:table_name]}.tenant_id::text = current_setting('session.tenant_id')
+        ))
+      }
+    end
+
+    admin_policy_statement = %Q{
       CREATE POLICY admin_policy ON #{table_name}
         FOR ALL
         TO #{username}
         USING (current_setting('session.access_level') = 'admin')
-    })
+    }
 
-    execute_query(%Q{
+    if check_expressions.present?
+      admin_policy_statement += "WITH CHECK ("
+      admin_policy_statement += check_expressions.join(" AND ")
+      admin_policy_statement += ")"
+    end
+
+    execute_query(admin_policy_statement)
+
+    tenant_policy_statement = %Q{
       CREATE POLICY tenant_policy ON #{table_name}
         FOR ALL
         TO #{username}
         USING (
           current_setting('session.access_level') = 'tenant' AND
-          current_setting('session.tenant_id') = #{table_name}.tenant_id::TEXT
+          current_setting('session.tenant_id') = #{table_name}.tenant_id::text
         )
-    })
+    }
+
+    if check_expressions.present?
+      tenant_policy_statement += "WITH CHECK ("
+      tenant_policy_statement += check_expressions.join(" AND ")
+      tenant_policy_statement += ")"
+    end
+
+    execute_query(tenant_policy_statement)
 
     execute_query(%Q{
       ALTER TABLE #{table_name} ENABLE ROW LEVEL SECURITY
