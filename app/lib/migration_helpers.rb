@@ -4,7 +4,7 @@ module MigrationHelpers
   end
 
   def create_policy_on(table_name)
-    username = ENV["DB_USERNAME"] || raise
+    username = ENV["DB_USERNAME"] || raise("DB_USERNAME is not set.")
 
     execute_query(%Q{
       CREATE POLICY admin_policy ON #{table_name}
