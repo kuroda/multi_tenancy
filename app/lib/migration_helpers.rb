@@ -6,8 +6,6 @@ module MigrationHelpers
   end
 
   def create_policy_on(table_name, references = [])
-    username = ENV["DB_USERNAME"] || raise("DB_USERNAME is not set.")
-
     check_expressions = references.map do |ref|
       %Q{
         (SELECT EXISTS (
@@ -21,7 +19,7 @@ module MigrationHelpers
     admin_policy_statement = %Q{
       CREATE POLICY admin_policy ON #{table_name}
         FOR ALL
-        TO #{username}
+        TO CURRENT_USER
         USING (current_setting('session.access_level') = 'admin')
     }
 
@@ -36,7 +34,7 @@ module MigrationHelpers
     tenant_policy_statement = %Q{
       CREATE POLICY tenant_policy ON #{table_name}
         FOR ALL
-        TO #{username}
+        TO CURRENT_USER
         USING (
           current_setting('session.access_level') = 'tenant' AND
           current_setting('session.tenant_id') = #{table_name}.tenant_id::text
@@ -53,6 +51,10 @@ module MigrationHelpers
 
     execute_query(%Q{
       ALTER TABLE #{table_name} ENABLE ROW LEVEL SECURITY
+    })
+
+    execute_query(%Q{
+      ALTER TABLE #{table_name} FORCE ROW LEVEL SECURITY
     })
   end
 

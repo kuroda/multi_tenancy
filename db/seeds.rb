@@ -1,3 +1,6 @@
+ApplicationRecord.access_level = "admin"
+ApplicationRecord.tenant = nil
+
 %w(alpha bravo charlie).each do |name|
   t = Tenant.create!(name: name)
 
