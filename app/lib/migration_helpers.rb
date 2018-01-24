@@ -5,7 +5,7 @@ module MigrationHelpers
     execute(query.squash)
   end
 
-  def create_policy_on(table_name, references = [])
+  def create_policies_on(table_name, references = [])
     check_expressions = references.map do |ref|
       %Q{
         (SELECT EXISTS (
@@ -58,7 +58,7 @@ module MigrationHelpers
     })
   end
 
-  def drop_policy_on(table_name)
+  def drop_policies_on(table_name)
     execute_query(%Q{
       DROP POLICY admin_policy ON #{table_name};
       DROP POLICY tenant_policy ON #{table_name};

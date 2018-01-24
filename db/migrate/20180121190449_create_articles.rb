@@ -15,7 +15,7 @@ class CreateArticles < ActiveRecord::Migration[5.1]
     add_foreign_key :articles, :tenants
     add_foreign_key :articles, :users
 
-    create_policy_on(
+    create_policies_on(
       "articles",
       [
         { table_name: "users", foreign_key: "user_id" }
@@ -24,7 +24,7 @@ class CreateArticles < ActiveRecord::Migration[5.1]
   end
 
   def down
-    drop_policy_on("articles")
+    drop_policies_on("articles")
 
     drop_table :articles
   end

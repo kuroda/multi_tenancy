@@ -11,11 +11,11 @@ class CreateUsers < ActiveRecord::Migration[5.1]
 
     add_foreign_key :users, :tenants
 
-    create_policy_on("users")
+    create_policies_on("users")
   end
 
   def down
-    drop_policy_on("users")
+    drop_policies_on("users")
 
     drop_table :users
   end
