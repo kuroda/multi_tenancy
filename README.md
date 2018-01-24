@@ -2,7 +2,21 @@
 
 ## 概要
 
-PostgreSQL の Row Level Security (RLS) を利用したマルチテナント Rails アプリケーションのサンプル
+PostgreSQL の Row Level Security (RLS) を利用したマルチテナント Rails アプリケーションのサンプルです。
+
+このアプリケーションでは、各テナントが複数のユーザーを抱え、それぞれのユーザーが複数の記事（articles）を持っています。
+
+あるテナントのユーザーとしてこのアプリケーションにログインした場合、別のテナントのユーザーや記事は参照できません。
+また、そのユーザーは同じテナントの別のユーザーの記事を参照できますが、挿入・更新・削除はできません。
+
+このようなアクセス制限をアプリケーション側に委ねると、情報漏えいや情報喪失を招くバグが混入しやすくなります。
+しかし、データベース側で制限をすれば、その種のバグが起こりえなくなります。
+
+なお、PostgreSQL ではマルチテナントシステムの構築に [Citus](https://www.citusdata.com/product/community) という拡張機能がしばしば使われますが、このサンプルでは使用していません。Citus の主目的はシステムの「スケーラビリティ」の向上です。Citus は「シャーディング」という技法により巨大なデータベースを複数の PostgreSQL インスタンスに分散させます。
+
+Citusの採用にはさまざまな利点がありますが、アプリケーションの開発者は「シャーディング」の仕組みをよく理解してプログラミングをしないと、思わぬエラーやパフォーマンスの低下を引き起こします。
+
+作ろうとしている Web アプリケーションの規模がシャーディングを利用するほどに巨大にならないことがわかっているならば、このサンプルのように PostgreSQL の標準機能だけを用いてマルチテナントシステムを構築できます。
 
 ## 動作環境
 
@@ -10,6 +24,50 @@ PostgreSQL の Row Level Security (RLS) を利用したマルチテナント Rai
 * PostgreSQL 10
 * Ruby 2.4
 * Ruby on Rails 5.1.4
+
+## マイグレーションヘルパーメソッド `create_policies_on`
+
+### `users` テーブルのマイグレーションスクリプト
+
+```
+  def up
+    create_table :users do |t|
+      t.references :tenant, null: false
+      t.string :name, null: false
+
+      t.timestamps
+    end
+
+    add_foreign_key :users, :tenants
+
+    create_policies_on("users")
+  end
+```
+
+### `articles` テーブルのマイグレーションスクリプト
+
+```
+    create_table :articles do |t|
+      t.references :tenant, null: false
+      t.references :user, null: false
+      t.string :title, null: false
+      t.text :body
+      t.integer :pages, null: false, default: 0
+
+      t.timestamps
+    end
+
+    add_foreign_key :articles, :tenants
+    add_foreign_key :articles, :users
+
+    create_policies_on(
+      "articles",
+      [
+        { table_name: "users", foreign_key: "user_id" }
+      ]
+    )
+  end
+```
 
 ## Row Level Security について
 
@@ -100,7 +158,6 @@ SELECT title FROM articles;
 
 すると、このユーザーには `tenant_id` の値が 1 である行だけが見えることになります。
 
-
 ## `WITH CHECK` 節
 
 `CREATE POLICY` 文に `WITH CHECK` 節を加えると、行の挿入・更新時にレコードがある条件を満たすかどうかが確認されます。条件を満たさない `INSERT` 文や `UPDATE` 文が発行されると、エラーとなります。
@@ -109,7 +166,7 @@ SELECT title FROM articles;
 
 ```
 CREATE POLICY tenant_policy ON articles
-  FOR SELECT
+  FOR SELECT, INSERT, UPDATE, DELETE
   TO CURRENT_USER
   USING (tenant_id::text = current_setting('session.current_tenant_id'))
   WITH CHECK (
