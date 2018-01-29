@@ -13,7 +13,8 @@ class ApplicationController < ActionController::Base
   end
 
   private def current_tenant
-    @current_tenant ||= Tenant.order(:id).first
+    # @current_tenant ||= Tenant.order(:id).first
+    @current_tenant ||= Tenant.all.sample
   end
   helper_method :current_tenant
 end
