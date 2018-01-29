@@ -5,6 +5,7 @@ class CreateUsers < ActiveRecord::Migration[5.1]
     create_table :users do |t|
       t.references :tenant, null: false
       t.string :name, null: false
+      t.integer :storage_size, null: false, default: 0
 
       t.timestamps
     end
