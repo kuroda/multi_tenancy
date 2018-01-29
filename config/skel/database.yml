@@ -6,6 +6,9 @@ default: &default
   password: mt
   host: localhost
   port: 5432
+  variables:
+    session.access_level: "guest"
+    session.tenant_id: ""
 
 development:
   <<: *default

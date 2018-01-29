@@ -1,6 +1,7 @@
 <h1>Users#index</h1>
 
 <p>Tenant: <%= current_tenant.name %></p>
+<p>Storage Usage: <%= current_tenant.storage_size %></p>
 
 <ol>
 <% @users.each do |user| %>
@@ -26,3 +27,17 @@
 <p>All Article Count: <%= Article.count %></p>
 <p>Article Page Count: <%= current_tenant.articles.sum(:pages) %></p>
 <p>All Article Page Count: <%= Article.sum(:pages) %></p>
+
+<p>
+  <%=
+    ActiveRecord::Base.connection
+      .execute("SELECT current_setting('session.access_level'::text)")[0]
+  %>
+</p>
+
+<p>
+  <%=
+    ActiveRecord::Base.connection
+      .execute("SELECT current_setting('session.tenant_id'::text)")[0]
+  %>
+</p>

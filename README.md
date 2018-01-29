@@ -25,7 +25,7 @@ Citusの採用にはさまざまな利点がありますが、アプリケーシ
 * Ruby 2.4
 * Ruby on Rails 5.1.4
 
-## マイグレーションヘルパーメソッド `create_policies_on`
+## マイグレーションヘルパーメソッド `add_policies`
 
 ### `users` テーブルのマイグレーションスクリプト
 
@@ -40,7 +40,7 @@ Citusの採用にはさまざまな利点がありますが、アプリケーシ
 
     add_foreign_key :users, :tenants
 
-    create_policies_on("users")
+    add_policies("users")
   end
 ```
 
@@ -60,7 +60,7 @@ Citusの採用にはさまざまな利点がありますが、アプリケーシ
     add_foreign_key :articles, :tenants
     add_foreign_key :articles, :users
 
-    create_policies_on(
+    add_policies(
       "articles",
       [
         { table_name: "users", foreign_key: "user_id" }

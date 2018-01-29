@@ -5,17 +5,18 @@ class CreateUsers < ActiveRecord::Migration[5.1]
     create_table :users do |t|
       t.references :tenant, null: false
       t.string :name, null: false
+      t.integer :storage_size, null: false, default: 0
 
       t.timestamps
     end
 
     add_foreign_key :users, :tenants
 
-    create_policies_on("users")
+    add_policies("users")
   end
 
   def down
-    drop_policies_on("users")
+    remove_policies("users")
 
     drop_table :users
   end
