@@ -40,9 +40,11 @@ ActiveRecord::Schema.define(version: 20180129203839) do
 
   create_table "tenants", force: :cascade do |t|
     t.string "name", null: false
+    t.string "name_for_index", null: false
     t.integer "storage_size", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["name_for_index"], name: "index_tenants_on_name_for_index", unique: true
   end
 
   create_table "users", force: :cascade do |t|
