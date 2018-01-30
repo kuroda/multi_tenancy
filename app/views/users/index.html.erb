@@ -28,6 +28,14 @@
 <p>Article Page Count: <%= current_tenant.articles.sum(:pages) %></p>
 <p>All Article Page Count: <%= Article.sum(:pages) %></p>
 
+<ol>
+<% current_tenant.storage_properties.each do |prop| %>
+  <li>
+    <%= prop.table_name %>: <%= prop.size %>
+  </li>
+<% end %>
+</ol>
+
 <p>
   <%=
     ActiveRecord::Base.connection
