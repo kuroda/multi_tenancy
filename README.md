@@ -1,33 +1,35 @@
 # multi_tenancy
 
-## 概要
+This is a tentative English translation from the original [README](README.ja.md) written in Japanese.
 
-PostgreSQL の Row Level Security (RLS) を利用したマルチテナント Rails アプリケーションのサンプルです。
+## Overview
 
-このアプリケーションでは、各テナントが複数のユーザーを抱え、それぞれのユーザーが複数の記事（articles）を持っています。
+This is a sample of multi-tenant Rails application using PostgreSQL's Row Level Security (RLS).
 
-あるテナントのユーザーとしてこのアプリケーションにログインした場合、別のテナントのユーザーや記事は参照できません。
-また、そのユーザーは同じテナントの別のユーザーの記事を参照できますが、挿入・更新・削除はできません。
+In this application, each tenant has multiple users and each user has multiple articles.
 
-このようなアクセス制限をアプリケーション側に委ねると、情報漏えいや情報喪失を招くバグが混入しやすくなります。
-しかし、データベース側で制限をすれば、その種のバグが起こりえなくなります。
+If you log in to this application as a user of a certain tenant, users and articles of another tenant can not be referenced.
+In addition, the user can refer to another user's articles of the same tenant, but can not insert, update, or delete them.
 
-なお、PostgreSQL ではマルチテナントシステムの構築に [Citus](https://www.citusdata.com/product/community) という拡張機能がしばしば使われますが、このサンプルでは使用していません。Citus の主目的はシステムの「スケーラビリティ」の向上です。Citus は「シャーディング」という技法により巨大なデータベースを複数の PostgreSQL インスタンスに分散させます。
+Leaving such access restrictions to the application side makes it easier for bugs that introduce information leakage and losses to get mixed in.
+However, if you restrict on the database side, that kind of bug will not occur.
 
-Citusの採用にはさまざまな利点がありますが、アプリケーションの開発者は「シャーディング」の仕組みをよく理解してプログラミングをしないと、思わぬエラーやパフォーマンスの低下を引き起こします。
+Developers often uses an extension called [Citus] (https://www.citusdata.com/product/community) to build a multi-tenant system based on PostgreSQL, but we do not use it in this sample. The main purpose of Citus is to improve the "scalability" of the system. Citus distributes the huge database to multiple PostgreSQL instances using the technique "sharding".
 
-作ろうとしている Web アプリケーションの規模がシャーディングを利用するほどに巨大にならないことがわかっているならば、このサンプルのように PostgreSQL の標準機能だけを用いてマルチテナントシステムを構築できます。
+There are various advantages to Citus's adoption, but application developers should understand the mechanism of "sharding" well in order not to cause unexpected errors and performance degradation.
 
-## 動作環境
+If you know that the size of the Web application you are trying to create is not huge enough to use sharding, you can build a multi-tenant system using only PostgreSQL's standard functionalities as we did in this sample.
+
+## Environment
 
 * Ubuntu Server 16.04
 * PostgreSQL 10
 * Ruby 2.4
 * Ruby on Rails 5.1.4
 
-## マイグレーションヘルパーメソッド `add_policies`
+## Migration helper method `add_policies`
 
-### `users` テーブルのマイグレーションスクリプト
+### Migration script for the table `users`
 
 ```
   def up
@@ -44,7 +46,7 @@ Citusの採用にはさまざまな利点がありますが、アプリケーシ
   end
 ```
 
-### `articles` テーブルのマイグレーションスクリプト
+### Migration script for the table `articles`
 
 ```
     create_table :articles do |t|
@@ -69,14 +71,13 @@ Citusの採用にはさまざまな利点がありますが、アプリケーシ
   end
 ```
 
-## Row Level Security について
+## About Row Level Security
 
-Row Level Security （以下、「RLS」と呼ぶ）は、2016 年 1 月にリリースされた PostgreSQL 9.5 で導入された機能です。
-日本語では「行単位セキュリティ」と訳されることもあります。
+Row Level Security (hereinafter referred to as "RLS") was introduced in PostgreSQL 9.5 released in January 2016.
 
-従来の `GRANT` 文ではテーブル単位でのアクセス制御しかできませんでしたが、RLS を利用すれば行単位でのアクセス制御が可能となります。
+In the conventional `GRANT` statement, only access control on a table basis was possible, but access control on a row basis is possible by using RLS.
 
-`CREATE POLICY` 文によってセキュリティポリシーを定義することにより RLS が設定されます。次の例では `alice` ユーザーに対して `articles` テーブルの一部に対する参照を許可しています。
+RLS is set by defining a security policy with the `CREATE POLICY` statement. The following example allows the user `alice` to refer to a part of the `articles` table.
 
 ```
 CREATE POLICY alice_policy ON articles
@@ -85,15 +86,15 @@ CREATE POLICY alice_policy ON articles
   USING (user_id = (SELECT id FROM users WHERE name = 'alice'))
 ```
 
-行への参照が許可される条件は `USING` 節の中に記述されます。上の例では、副問い合わせを用いて `users` テーブルから `name` 列の値が `'alice'` である行の `id` 列の値を取得し、それと `user_id` 列の値が一致する `articles` テーブルの行への参照を許しています。
+Conditions for which reference to rows is permitted are described in the `USING` clause. In the above example, we allow references to rows of the `articles` table whose `user_id` matches the ID of the user `alice`.
 
-ただし、初期状態では RLS は無効になっています。`ALTER TABLE` 文を用いてテーブル単位で有効にする必要があります。
+Note that RLS is disabled in the initial state. It must be enabled on a per-table basis using the `ALTER TABLE` statement.
 
 ```
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY
 ```
 
-いま `users` テーブルに次のような行が保存されているとします。
+Suppose that we have these records in the table `users`.
 
 ```
 id | name
@@ -103,7 +104,7 @@ id | name
 3  | charlie
 ```
 
-そして、 `articles` テーブルに次のような行が保存されているとします。
+And suppose that we have these records in the table `articles`.
 
 ```
 id | user_id | title
@@ -114,31 +115,31 @@ id | user_id | title
 4  | 3       | Z
 ```
 
-以上のような状態で、`alice` ユーザーが次のようなクエリを発行したとします。
+Suppose that the user `alice` issues the following query in the above state.
 
 ```
 SELECT title FROM articles
 ```
 
-すると、RLS が無効であれば 4 個の行が検索されることになりますが、RLS が有効となっていれば 2 個しか検索されません。
+Then, if RLS is disabled, 4 rows will be retrieved, but if RLS is enabled, only 2 are retrieved.
 
-## `current_setting` 関数
+## `current_setting` function
 
-この Rails アプリケーションでは、マルチテナントシステムにおけるセキュリティを高めるために PostgreSQL の `current_setting` 関数を利用しています。
+In this Rails application, we use PostgreSQL `current_setting` function to improve security in multi-tenant system.
 
-PostgreSQL では `SET` 文を用いてカスタム変数に値をセットできます。次の例では、変数 `foo.bar` に `'X'` という文字列をセットしています。カスタム変数名には必ずドットを含む必要があります。
+PostgreSQL allows you to set values for custom variables using the `SET` statement. In the following example, the variable `foo.bar` is set to the string `'X'`. A custom variable name must include a dot.
 
 ```
 SET foo.bar = 'X'
 ```
 
-カスタム変数の値は `current_setting` 関数を用いて取得できます。
+We can get the values of custom variables using `current_setting` function.
 
 ```
 current_setting('foo.bar')
 ```
 
-この関数は `CREATE POLICY` 文の `USING` 節の中でも使えます。次の例をご覧ください。
+This function can also be used in the `USING` clause of the` CREATE POLICY` statement. See the example below.
 
 ```
 CREATE POLICY tenant_policy ON articles
@@ -147,22 +148,22 @@ CREATE POLICY tenant_policy ON articles
   USING (tenant_id::text = current_setting('session.current_tenant_id'))
 ```
 
-ここでは `articles` テーブルに `tenant_id` という整数型の列があると仮定しています。
+Here we assume that there is an integer type column called `tenant_id` in the` articles` table.
 
-以上のような状態で、あるユーザーが次のようなクエリを発行したとします。
+Suppose that a user issues the following query in the above state.
 
 ```
 SET session.current_tenant_id = '1';
 SELECT title FROM articles;
 ```
 
-すると、このユーザーには `tenant_id` の値が 1 である行だけが見えることになります。
+Then, for this user, only lines with `tenant_id` value of 1 will be visible.
 
-## `WITH CHECK` 節
+## `WITH CHECK` clause
 
-`CREATE POLICY` 文に `WITH CHECK` 節を加えると、行の挿入・更新時にレコードがある条件を満たすかどうかが確認されます。条件を満たさない `INSERT` 文や `UPDATE` 文が発行されると、エラーとなります。
+If you add the `WITH CHECK` clause to the` CREATE POLICY` statement, it will be checked whether the record satisfies certain conditions when inserting or updating the line. If an `INSERT` statement or `UPDATE` statement that does not satisfy the condition is issued, an error occurs.
 
-次の例をご覧ください。
+See the example below.
 
 ```
 CREATE POLICY tenant_policy ON articles
@@ -178,16 +179,16 @@ CREATE POLICY tenant_policy ON articles
   )
 ```
 
-上記のようにセキュリティポリシーが設定されると、`articles` テーブルに対する行の挿入・更新時に `users` テーブルで次のふたつの条件を満たす行の有無が調べられ、なければエラーとなります。
+When the security policy is set as described above, the presence or absence of a row satisfying the following two conditions is checked in the `users` table when inserting / updating a row in the `articles` table, otherwise an error occurs.
 
-* `id` 列の値と *k* が等しい。
-* `tenant_id` 列の値を文字列に変換すると、カスタム変数 `session.current_tenant_id` の値に等しくなる。
+* The value of the `id` column is equal to *k*.
+* Converting the value of the `tenant_id` column to a string, it is equal to the value of the custom variable `session.current_tenant_id`.
 
-ただし、*k* は `articles` テーブルに挿入・更新される行の `user_id` 列の値とします。
+The *k* is the value of the `user_id` column of the row to be inserted or updated in the` articles` table.
 
-## RLS の利用上の注意
+## Notes on using RLS
 
-`SUPERUSER` および `BYPASSRLS` 属性を持つロールに対して RLS は常に無効です。また、テーブルのオーナーに対して、RLS はデフォルトで無効ですが、次のように `ALTER TABLE` 文を用いて有効化できます。
+For roles with `SUPERUSER` and `BYPASSRLS` attributes, RLS is always disabled. Also, for table owners, RLS is disabled by default, but you can enable it using the `ALTER TABLE` statement as follows.
 
 ```
 ALTER TABLE articles FORCE ROW LEVEL SECURITY
